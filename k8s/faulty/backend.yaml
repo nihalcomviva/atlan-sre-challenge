@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend-api   # INTENTIONAL: label mismatch with Service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/wagoodman/demo-http-echo:latest
+          args: ["-text=hello-from-backend"]
+          ports:
+            - containerPort: 5678
+          env:
+            - name: DB_HOST
+              value: "external-db.example.com"  # could be unreachable without egress
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: backend       # INTENTIONAL: doesn't match Deployment labels (backend-api)
+  ports:
+    - port: 80
+      targetPort: 5678
+      protocol: TCP
+      name: http

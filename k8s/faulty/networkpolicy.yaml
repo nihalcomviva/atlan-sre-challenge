@@ -1,0 +1,11 @@
+# INTENTIONAL restrictive egress: blocks DNS and external egress by default
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: default
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress: []

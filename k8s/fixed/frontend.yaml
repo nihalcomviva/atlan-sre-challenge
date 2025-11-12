@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh","-c"]
+          args:
+            - >
+              # simple HTTP server to show health plus background poller
+              (while true; do
+                 echo "Hitting backend at $BACKEND_URL";
+                 curl -s "$BACKEND_URL" || echo "ERROR calling backend";
+                 sleep 2;
+               done) &
+              # expose simple health endpoint
+              while true; do printf "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK" | nc -l -p 80; done
+          env:
+            - name: BACKEND_URL
+              value: "http://backend-svc.default.svc.cluster.local:80"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http

@@ -1,0 +1,44 @@
+{
+  "title": "SRE Challenge - K8s Signals",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Pod Restarts (frontend)",
+      "targets": [
+        {
+          "expr": "increase(kube_pod_container_status_restarts_total{namespace=\"default\",pod=~\"frontend-.*\"}[15m])",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "graph",
+      "title": "Container Memory Usage (frontend)",
+      "targets": [
+        {
+          "expr": "container_memory_working_set_bytes{namespace=\"default\",pod=~\"frontend-.*\",container=\"frontend\"}",
+          "legendFormat": "{{pod}}",
+          "refId": "B"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "graph",
+      "title": "Node Memory Pressure",
+      "targets": [
+        {
+          "expr": "kube_node_status_condition{condition=\"MemoryPressure\",status=\"true\"}",
+          "legendFormat": "{{node}}",
+          "refId": "C"
+        }
+      ],
+      "id": 3
+    }
+  ],
+  "schemaVersion": 36,
+  "version": 1
+}
