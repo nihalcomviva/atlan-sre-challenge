@@ -1,46 +1,39 @@
-# Atlan SRE Challenge – Hands-on Kit
+# Atlan SRE Challenge – Kubernetes Troubleshooting & Observability
 
-This repo gives you a quick, reproducible environment that *intentionally breaks* and then gets fixed.
-It aligns with the Scenario, Objectives, Deliverables, and Evaluation Criteria in your PDF.
+This repository contains the setup and fixes for the **Atlan SRE Challenge** — demonstrating hands-on debugging, Kubernetes networking, and observability practices.  
+The environment intentionally starts with broken configurations and is then fixed step by step.
 
-## Quick start (Kind + kube-prometheus-stack)
+---
+
+## 🧩 Scenario Overview
+
+The setup simulates a small microservice architecture with:
+- **Backend**: `hashicorp/http-echo` – responds with `hello-from-backend`
+- **Frontend**: `curl` container hitting backend via Service
+- **NetworkPolicy**: restrictive rules that initially block DNS & egress
+- **Grafana + Prometheus**: for observability and analysis
+
+---
+
+## 🚀 Quick Start (Using Minikube)
 
 ```bash
-# 1) Create cluster + monitoring
-./scripts/01_create_kind.sh
+# 1️⃣ Start Minikube
+minikube start --cpus=4 --memory=6144 --kubernetes-version=stable
 
-# 2) Deploy broken scenario
-./scripts/02_deploy_faulty.sh
+# 2️⃣ Enable metrics-server for HPA
+minikube addons enable metrics-server
 
-# 3) Run guided debugging (optional)
-./scripts/03_debug_steps.sh
+# 3️⃣ Deploy the initial broken setup
+kubectl apply -f k8s/faulty/
 
-# 4) Apply fixes & verify
-./scripts/04_deploy_fixed.sh
-```
+# 4️⃣ Deploy the network debugging pod
+kubectl apply -f k8s/tools/net-debug.yaml
 
-> Tip: To view Grafana locally:
-```bash
-kubectl -n monitoring port-forward svc/kps-grafana 3000:80
-# login: admin / admin123
-# import grafana/dashboard.json
-```
+# 5️⃣ Observe failures and investigate logs, DNS, and endpoints
 
-## What’s broken (by design)
-- **Service selector mismatch** for `backend-svc` (selector `app: backend` vs pod label `app: backend-api`).
-- **Wrong DNS name** in `frontend` env (`BACKEND_URL=http://backend-svc-wrong:80`).
-- **Restrictive NetworkPolicy** blocks all egress (including DNS).
-- **Low memory limit** on frontend to flirt with OOM/restarts under load.
+# 6️⃣ Apply the fixes
+kubectl apply -f k8s/fixed/
 
-## What the fixes do
-- Correct label selectors and DNS name.
-- Relax egress to allow DNS (UDP/TCP 53) and common web ports; keep least privilege.
-- Increase requests/limits for stability and add an HPA for burst tolerance.
-- Scale backend and frontend to 2 replicas for resilience.
-
-## Evidence to capture
-- `kubectl get pods`, `kubectl describe pod`, `kubectl logs --previous` (CrashLoopBackOff/OOMKilled signals)
-- `kubectl get endpoints backend-svc` (empty vs populated)
-- DNS lookups from `net-debug` pod (`nslookup backend-svc`)
-- Grafana panels: pod restarts, container memory, node MemoryPressure
-- Successful curl/wget to `http://backend-svc` and via `frontend-svc` after fixes
+# 7️⃣ Set correct environment for frontend
+kubectl set env deployment/frontend BACKEND_URL=http://backend-svc.default.svc.cluster.local:5678
