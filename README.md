@@ -39,17 +39,3 @@ kubectl apply -f k8s/fixed/
 kubectl set env deployment/frontend BACKEND_URL=http://backend-svc.default.svc.cluster.local:5678
 
 
-ScreentShots
-
-
-
-
-
-
-
-
-
-
-<img width="1934" height="1756" alt="image" src="https://github.com/user-attachments/assets/f751a6c4-22fa-42a8-bed9-ce2bba87797f" />
-
-
