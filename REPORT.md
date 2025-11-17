@@ -7,7 +7,7 @@
 
 ## 2) Fixes
 - **Fix1:** Align `app` labels and Service selectors; correct `BACKEND_URL` to `http://backend-svc.default.svc.cluster.local:80`.
-- **Fix2:** Requests/limits tuned (128Mi/256Mi) + HPA (2–5). Increased replicas to 2 for both services.
+- **Fix2:** Requests/limits tuned (128Mi/256Mi) + HPA (2–5) for autoscaling. Increased backend replicas to 2 for resilience.
 - **Fix3:** Replace default-deny with explicit `allow-dns-and-web-egress` NetworkPolicy.
 
 ## 3) Monitoring Findings
